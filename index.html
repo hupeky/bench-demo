@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" width="1000" content="initial-scale=0.6, user-scalable=no", minimum-scale=0.6, maximum-scale=0.6/>
+    <link rel="stylesheet" type="text/css" href="css/reset.css">
+    <link rel="stylesheet" type="text/css" href="css/styles.css">
+
+    <title>Cat Walk - Learning Ground</title>
+</head>
+<body>
+<!-- Call all core scripts first -->
+<script src="build/three.min.js">// the core file</script>
+<script src="js-libs/controls/OrbitControls.js"></script>
+<script src="js-libs/controls/FirstPersonControls.js"></script>
+<script src="js-libs/controls/PointerLockControls.js"></script>
+<script src="js-libs/Detector.js">// Utility to detect if Browser is wEB gl compatible </script>
+<script src="js-libs/libs/stats.min.js">// for displaying the small performance bar in the top left//  </script>
+<script src="js-libs/extras/SceneUtils.js">// for enabling attaching and detaching objects in scene hierarchy//  </script>
+<script type="text/javascript" src="js-libs/libs/tween.min.js"></script>
+
+<script src="js-libs/libs/dat.gui.min.js">//googles built in control gui</script>
+<script src="js-libs/loaders/ColladaLoader.js">// the collada loader for importing scenes from maya</script>
+
+<script type="text/javascript" src="js-libs/jquery/jquery-3.1.0.min.js"></script>
+<script type="text/javascript" src="js-libs/jquery/jquery-ui.min.js"></script>
+<script type="text/javascript" src="js-libs/jquery/jquery-ui.min.js"></script>
+
+
+
+<!-- Div which will hold the Web GL Output -->
+<div class="title-screen">
+
+    <div class="title-info">
+        <div class="width100 group">
+        <div class="float-left width50">
+            <h3>At scene start:</h3>
+            <p>left click on scene and drag mouse to look around.<br />
+            Middle mouse: zoom.</p>
+        </div>
+        <div class="float-left width50">
+            <h3>On product:</h3>
+            <p>Left mouse orbit.<br />
+            Middle mouse: zoom.<br />
+            Right click:pan</p>
+        </div>
+        </div>
+        <div class="width100 group">
+            <div class="float-left width50 group">
+                <h3>Move around scene</h3>
+                <p>Click on any other object at any time to move to it<br />
+                Click on Point Of Interest to zoom in on object.<br />
+                NOTE: If you're inside the bounding volume, object select does not work</p>
+            </div>
+            <div class="float-left width50 group">
+                <h3>Nav Bar</h3>
+                <p>Full specs: opens a dummy tech specs panel.<br />
+                Back: either Goes out of POI, or back to scene view.<br />
+                Buy now: does nothing.</p>
+            </div>
+        </div>
+
+        <h3>Project Notes</h3>
+        <p>This demo was produced in my spare time, over 5 months. Creating smaller projects before building this one, I studied from various sources including: Lynda, Digital Tutors, various books, Stack Overflow, forums and anywhere I could find an answer. I built this as a platform to learn the end to end workflow of building 3d on the web.</p>
+        <p>I had no prior knowledge, I learned as I went. It's incomplete and coded roughly. It was never tested on mobile phones, it was only ever supposed to be shown as a demo in the boardroom. It uses dummy data.</p>
+        <p>Only one model was created to a higher detail: the multimeter. The others were dummy products to show the camera behaviour.</p>
+        <p>The floating multimeter is put there to enable seeing it from all view points. (Ran out of time to code a fade out background feature.)</p>
+    </div>
+    <div class="load-area">
+        <div class="load-bar"></div>
+        <div class="load-button"><img class="arrow" src="imgs/button-arrow.png" /><p>Loading</p></div>
+        <div id="enter" class="enter-button"><img class="arrow" src="imgs/button-arrow.png" /><p>Enter</p></div>
+    </div>
+
+</div>
+<div id="vpContainer">
+
+    <div class="title-bar">
+        <div id="multimeter2_title">MultiMeter 2, GFG-80213</div>
+        <div id="multimeter_title">MultiMeter, GFG-80213</div>
+        <div id="solderingstation_title">Soldering Station</div>
+        <div id="functiongenerator_title">Function Generator</div>
+        <div id="solderingstation_title">ST-60, Soldering Station, 240V, </div>
+        <div id="bitsdraw_title">Crimp Tool Kit</div>
+        <div id="earthplug_title">RS Pro Earth Bonding Plug</div>
+        <div id="esdwriststrap_title">Grounding Wrist Strap & Cord </div>
+
+        <table class="navigate bar">
+            <tr>
+                <td onclick="goBack()"  class="back"><img src="imgs/back-arrow.png" />Back</td>
+                <td onclick="toggleSpecs()" class="specs"><img src="imgs/down-arrow.png" />Full specs</td>
+                <td class="buy"><img src="imgs/forward-arrow.png" />Buy</td>
+            </tr>
+        </table>
+    </div>
+
+    <div id="techspecs-container">
+        <div id="closebar" ><img  onclick="toggleSpecs()" src="imgs/close-bar.png" /></div>
+        <img src="imgs/techspecs.jpg" />
+    </div>
+    <div id="techspecs" class="width0"></div>
+    <div id="vp0" class="webglviewport width100">
+        <div id="multimeter_pois">
+            <div id="poi_0" class="poi" onclick="setFromPoi(0,'multimeter')">1</div>
+            <div id="poi_1" class="poi" onclick="setFromPoi(1,'multimeter')">2</div>
+            <div id="poi_2" class="poi" onclick="setFromPoi(2,'multimeter')">3</div>
+            <div id="poi_3" class="poi" onclick="setFromPoi(3,'multimeter')">4</div>
+            <div id="poi_4" class="poi" onclick="setFromPoi(4,'multimeter')">5</div>
+            <div id="poi_5" class="poi" onclick="setFromPoi(5,'multimeter')">6</div>
+            <div id="poi_6" class="poi" onclick="setFromPoi(6,'multimeter')">7</div>
+            <div id="poi_7" class="poi" onclick="setFromPoi(7,'multimeter')">8</div>
+        </div>
+        <div id="multimeter2_pois">
+            <div id="poi_0" class="poi" onclick="setFromPoi(0,'multimeter2')">1</div>
+            <div id="poi_1" class="poi" onclick="setFromPoi(1,'multimeter2')">2</div>
+            <div id="poi_2" class="poi" onclick="setFromPoi(2,'multimeter2')">3</div>
+            <div id="poi_3" class="poi" onclick="setFromPoi(3,'multimeter2')">4</div>
+            <div id="poi_4" class="poi" onclick="setFromPoi(4,'multimeter2')">5</div>
+            <div id="poi_5" class="poi" onclick="setFromPoi(5,'multimeter2')">6</div>
+            <div id="poi_6" class="poi" onclick="setFromPoi(6,'multimeter2')">7</div>
+            <div id="poi_7" class="poi" onclick="setFromPoi(7,'multimeter2')">8</div>
+        </div>
+        <div id="solderingstation_pois">
+            <div id="poi_0" class="poi" onclick="setFromPoi(0,'solderingstation')">1</div>
+            <div id="poi_1" class="poi" onclick="setFromPoi(1,'solderingstation')">2</div>
+            <div id="poi_2" class="poi" onclick="setFromPoi(2,'solderingstation')">3</div>
+            <div id="poi_3" class="poi" onclick="setFromPoi(3,'solderingstation')">4</div>
+
+        </div>
+        <div id="functiongenerator_pois">
+            <div id="poi_0" class="poi" onclick="setFromPoi(0,'functiongenerator')">1</div>
+            <div id="poi_1" class="poi" onclick="setFromPoi(1,'functiongenerator')">2</div>
+            <div id="poi_2" class="poi" onclick="setFromPoi(2,'functiongenerator')">3</div>
+            <div id="poi_3" class="poi" onclick="setFromPoi(3,'functiongenerator')">4</div>
+
+        </div>
+        <div id="bitsdraw_pois">
+            <div id="poi_0" class="poi" onclick="setFromPoi(0,'bitsdraw')">1</div>
+            <div id="poi_1" class="poi" onclick="setFromPoi(1,'bitsdraw')">2</div>
+            <div id="poi_2" class="poi" onclick="setFromPoi(2,'bitsdraw')">3</div>
+            <div id="poi_3" class="poi" onclick="setFromPoi(3,'bitsdraw')">4</div>
+            <div id="poi_4" class="poi" onclick="setFromPoi(4,'bitsdraw')">5</div>
+            <div id="poi_5" class="poi" onclick="setFromPoi(5,'bitsdraw')">6</div>
+            <div id="poi_6" class="poi" onclick="setFromPoi(6,'bitsdraw')">7</div>
+            <div id="poi_7" class="poi" onclick="setFromPoi(7,'bitsdraw')">8</div>
+            <div id="poi_8" class="poi" onclick="setFromPoi(8,'bitsdraw')">9</div>
+            <div id="poi_9" class="poi" onclick="setFromPoi(9,'bitsdraw')">10</div>
+        </div>
+
+        <div class="poi-summary" id="poi_0-summary">
+            <div class="summary-title">Summary - Generic POI for Demo 1</div>
+            <div class="summary-img"><img src="imgs/poi1.png"/></div>
+            <div class="summary-text">
+                <h3>Point of Interest Data</h3>
+                <ul class="summary-list">
+                    <li>RS Pro Adjustable Wrist Strap and Cords</li>
+                    <li>Premium quality fabric band and cord set</li>
+                    <li>Fully adjustable wrist strap fits all sizes</li>
+                    <li>Frequency Range : 0.2Hz ~ 2MHz</li>
+                </ul>
+            </div>
+        </div>
+        <div class="poi-summary" id="poi_1-summary">
+            <div class="summary-title">Summary - Generic POI for Demo 2</div>
+            <div class="summary-img"><img src="imgs/poi2.png"/></div>
+            <div class="summary-text">
+                <h3>Point of Interest Data</h3>
+                <ul class="summary-list">
+                    <li>RS Pro Adjustable Wrist Strap and Cords</li>
+                    <li>Premium quality fabric band and cord set</li>
+                    <li>Fully adjustable wrist strap fits all sizes</li>
+                    <li>Frequency Range : 0.2Hz ~ 2MHz</li>
+                </ul>
+            </div>
+        </div>
+        <div class="poi-summary" id="poi_2-summary">
+            <div class="summary-title">Summary - Generic POI for Demo 3</div>
+            <div class="summary-img"><img src="imgs/poi3.png"/></div>
+            <div class="summary-text">
+                <h3>Point of Interest Data</h3>
+                <ul class="summary-list">
+                    <li>RS Pro Adjustable Wrist Strap and Cords</li>
+                    <li>Premium quality fabric band and cord set</li>
+                    <li>Fully adjustable wrist strap fits all sizes</li>
+                    <li>Frequency Range : 0.2Hz ~ 2MHz</li>
+                </ul>
+            </div>
+        </div>
+        <div class="poi-summary" id="poi_3-summary">
+            <div class="summary-title">Summary - Generic POI for Demo 4</div>
+            <div class="summary-img"><img src="imgs/poi4.png"/></div>
+            <div class="summary-text">
+                <h3>Point of Interest Data</h3>
+                <ul class="summary-list">
+                    <li>RS Pro Adjustable Wrist Strap and Cords</li>
+                    <li>Premium quality fabric band and cord set</li>
+                    <li>Fully adjustable wrist strap fits all sizes</li>
+                    <li>Frequency Range : 0.2Hz ~ 2MHz</li>
+                </ul>
+            </div>
+        </div>
+        <div class="poi-summary" id="poi_4-summary">
+            <div class="summary-title">Summary - Generic POI for Demo 5</div>
+            <div class="summary-img"><img src="imgs/poi5.png"/></div>
+            <div class="summary-text">
+                <h3>Point of Interest Data</h3>
+                <ul class="summary-list">
+                    <li>RS Pro Adjustable Wrist Strap and Cords</li>
+                    <li>Premium quality fabric band and cord set</li>
+                    <li>Fully adjustable wrist strap fits all sizes</li>
+                    <li>Frequency Range : 0.2Hz ~ 2MHz</li>
+                </ul>
+            </div>
+        </div>
+        <div class="poi-summary" id="poi_5-summary">
+            <div class="summary-title">Summary - Generic POI for Demo 6</div>
+            <div class="summary-img"><img src="imgs/poi6.png"/></div>
+            <div class="summary-text">
+                <h3>Point of Interest Data</h3>
+                <ul class="summary-list">
+                    <li>RS Pro Adjustable Wrist Strap and Cords</li>
+                    <li>Premium quality fabric band and cord set</li>
+                    <li>Fully adjustable wrist strap fits all sizes</li>
+                    <li>Frequency Range : 0.2Hz ~ 2MHz</li>
+                </ul>
+            </div>
+        </div>
+        <div class="poi-summary" id="poi_6-summary">
+            <div class="summary-title">Summary - Generic POI for Demo 7</div>
+            <div class="summary-img"><img src="imgs/poi7.png"/></div>
+            <div class="summary-text">
+                <h3>Point of Interest Data</h3>
+                <ul class="summary-list">
+                    <li>RS Pro Adjustable Wrist Strap and Cords</li>
+                    <li>Premium quality fabric band and cord set</li>
+                    <li>Fully adjustable wrist strap fits all sizes</li>
+                    <li>Frequency Range : 0.2Hz ~ 2MHz</li>
+                </ul>
+            </div>
+        </div>
+        <div class="poi-summary" id="poi_7-summary">
+            <div class="summary-title">Summary - Generic POI for Demo 8</div>
+            <div class="summary-img"><img src="imgs/poi8.png"/></div>
+            <div class="summary-text">
+                <h3>Point of Interest Data</h3>
+                <ul class="summary-list">
+                    <li>RS Pro Adjustable Wrist Strap and Cords</li>
+                    <li>Premium quality fabric band and cord set</li>
+                    <li>Fully adjustable wrist strap fits all sizes</li>
+                    <li>Frequency Range : 0.2Hz ~ 2MHz</li>
+                </ul>
+            </div>
+        </div>
+        <div class="poi-summary" id="poi_8-summary">
+            <div class="summary-title">Summary - Generic POI for Demo 9</div>
+            <div class="summary-img"><img src="imgs/poi9.png"/></div>
+            <div class="summary-text">
+                <h3>Point of Interest Data</h3>
+                <ul class="summary-list">
+                    <li>RS Pro Adjustable Wrist Strap and Cords</li>
+                    <li>Premium quality fabric band and cord set</li>
+                    <li>Fully adjustable wrist strap fits all sizes</li>
+                    <li>Frequency Range : 0.2Hz ~ 2MHz</li>
+                </ul>
+            </div>
+        </div>
+        <div class="poi-summary" id="poi_9-summary">
+            <div class="summary-title">Summary - Earth Plug, HGH-91046</div>
+            <div class="summary-img"><img src="imgs/poi10.png"/></div>
+            <div class="summary-text">
+                <h3>Point of Interest Data</h3>
+                <ul class="summary-list">
+                    <li>RS Pro Adjustable Wrist Strap and Cords</li>
+                    <li>Premium quality fabric band and cord set</li>
+                    <li>Fully adjustable wrist strap fits all sizes</li>
+                    <li>Frequency Range : 0.2Hz ~ 2MHz</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="product-summary"  id="multimeter2_summary">
+            <div class="summary-title">Summary - MultiMeter 2, GFG-80213</div>
+            <div class="summary-img"><img src="imgs/multimeter-summary.jpg"/></div>
+            <div class="summary-text">
+                <h3>Product Summary</h3>
+                <ul class="summary-list">
+                    <li>Frequency Range : 0.2Hz ~ 2MHz</li>
+                    <li>Coarse and Fine Tuning</li>
+                    <li>Waveform : Sine, Triangle, Square, TTL Pulse</li>
+
+                </ul>
+                <table class="navigate">
+                    <tr>
+                        <td onclick="goBack()"  class="back"><img src="imgs/back-arrow.png" />Back</td>
+                        <td onclick="toggleSpecs()" class="specs"><img src="imgs/down-arrow.png" />Full specs</td>
+                        <td class="buy"><img src="imgs/forward-arrow.png" />Buy</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div class="product-summary"  id="earthplug_summary">
+            <div class="summary-title">Summary - Earth Plug, HGH-91046</div>
+            <div class="summary-img"><img src="imgs/earthplug-summary.jpg"/></div>
+            <div class="summary-text">
+                <h3>Product Summary</h3>
+                <ul class="summary-list">
+                    <li>RS Pro Adjustable Wrist Strap and Cords</li>
+                    <li>Premium quality fabric band and cord set</li>
+                    <li>Fully adjustable wrist strap fits all sizes</li>
+
+                </ul>                       <table class="navigate">
+                    <tr>
+                        <td onclick="goBack()"  class="back"><img src="imgs/back-arrow.png" />Back</td>
+                        <td onclick="toggleSpecs()" class="specs"><img src="imgs/down-arrow.png" />Full specs</td>
+                        <td class="buy"><img src="imgs/forward-arrow.png" />Buy</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div class="product-summary"  id="esdwriststrap_summary">
+            <div class="summary-title">Summary - Earth Plug, HGH-91046</div>
+            <div class="summary-img"><img src="imgs/esdwriststrap-summary.jpg"/></div>
+            <div class="summary-text">
+                <h3>Product Summary</h3>
+                <ul class="summary-list">
+                    <li>RS Pro Adjustable Wrist Strap and Cords</li>
+                    <li>Premium quality fabric band and cord set</li>
+                    <li>Fully adjustable wrist strap fits all sizes</li>
+
+                </ul>                    <table class="navigate">
+                    <tr>
+                        <td onclick="goBack()"  class="back"><img src="imgs/back-arrow.png" />Back</td>
+                        <td onclick="toggleSpecs()" class="specs"><img src="imgs/down-arrow.png" />Full specs</td>
+                        <td class="buy"><img src="imgs/forward-arrow.png" />Buy</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div class="product-summary"  id="solderingstation_summary">
+            <div class="summary-title">Summary - ST-60, Soldering Station, 240V</div>
+            <div class="summary-img"><img src="imgs/solderingstation-summary.jpg"/></div>
+            <div class="summary-text">
+                <h3>Product Summary</h3>
+                <ul class="summary-list">
+                    <li>Frequency Range : 0.2Hz ~ 2MHz</li>
+                    <li>Coarse and Fine Tuning</li>
+                    <li>Waveform : Sine, Triangle, Square, TTL Pulse</li>
+                </ul>
+                <table class="navigate">
+                    <tr>
+                        <td onclick="goBack()"  class="back"><img src="imgs/back-arrow.png" />Back</td>
+                        <td onclick="toggleSpecs()" class="specs"><img src="imgs/down-arrow.png" />Full specs</td>
+                        <td class="buy"><img src="imgs/forward-arrow.png" />Buy</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="product-summary"  id="functiongenerator_summary">
+            <div class="summary-title">Summary - Tektronix Function Generator</div>
+            <div class="summary-img"><img src="imgs/functiongenerator-summary.jpg"/></div>
+            <div class="summary-text">
+                <h3>Product Summary</h3>
+                <ul class="summary-list">
+                    <li>Frequency Range : 0.2Hz ~ 2MHz</li>
+                    <li>Coarse and Fine Tuning</li>
+                    <li>Waveform : Sine, Triangle, Square, TTL Pulse</li>
+                </ul>                    <table class="navigate">
+                    <tr>
+                        <td onclick="goBack()"  class="back"><img src="imgs/back-arrow.png" />Back</td>
+                        <td onclick="toggleSpecs()" class="specs"><img src="imgs/down-arrow.png" />Full specs</td>
+                        <td class="buy"><img src="imgs/forward-arrow.png" />Buy</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="product-summary"  id="bitsdraw_summary">
+            <div class="summary-title">Summary - Crimp Tool Kit</div>
+            <div class="summary-img"><img src="imgs/bitsdraw-summary.jpg"/></div>
+            <div class="summary-text">
+                <h3>Product Summary</h3>
+                <ul class="summary-list">
+                    <li>Frequency Range : 0.2Hz ~ 2MHz</li>
+                    <li>Coarse and Fine Tuning</li>
+                    <li>Waveform : Sine, Triangle, Square, TTL Pulse</li>
+                </ul>
+                <table class="navigate">
+                    <tr>
+                        <td onclick="goBack()"  class="back"><img src="imgs/back-arrow.png" />Back</td>
+                        <td onclick="toggleSpecs()" class="specs"><img src="imgs/down-arrow.png" />Full specs</td>
+                        <td class="buy"><img src="imgs/forward-arrow.png" />Buy</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="product-summary" id="multimeter_summary">
+            <div class="summary-title">Summary - Multimeter, GFG-80213</div>
+            <div class="summary-img"><img src="imgs/multimeter-summary.jpg"/></div>
+            <div class="summary-text">
+                <h3>Product Summary</h3>
+                <ul class="summary-list">
+                    <li>Frequency Range : 0.2Hz ~ 2MHz</li>
+                    <li>Coarse and Fine Tuning</li>
+                    <li>Waveform : Sine, Triangle, Square, TTL Pulse</li>
+                </ul>
+                <table class="navigate">
+                    <tr>
+                        <td onclick="goBack()"  class="back"><img src="imgs/back-arrow.png" />Back</td>
+                        <td  onclick="toggleSpecs()" class="specs"><img src="imgs/down-arrow.png" />Full specs</td>
+                        <td class="buy"><img src="imgs/forward-arrow.png" />Buy</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <!--<div onclick="uiSlide()" id="toggleSpecs" class="toggleSpecs" >Go Back</div>!-->
+    </div>
+
+</div>
+</body>
+</html>
+
+<script type="text/javascript" src="js/bench.js">// for displaying the small performance bar in the top left//  </script>
